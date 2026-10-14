@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>FurryBaby Sanctuary - Thế Giới Thú Cưng Pixel Huyền Bí</title>
+  <meta name="description" content="Thế giới thú cưng pixel nghệ thuật FurryBaby với bản đồ sinh thái RPG sống động, quy tụ đầy đủ 10 bé pet huyền thoại cùng tính năng tương tác, chăm sóc và âm thanh retro chiptune.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220%22 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐾</text></svg>">
+  <link rel="stylesheet" href="style.css?v=12">
+</head>
+<body>
+
+  <!-- Fullscreen Pixel Game Canvas Container -->
+  <main id="canvasContainer" role="region" aria-label="Bản đồ trò chơi thú cưng FurryBaby">
+    <canvas id="gameCanvas"></canvas>
+  </main>
+
+  <!-- Top Navigation & Stats HUD -->
+  <header class="top-hud">
+    <div class="hud-left">
+      <div class="hud-title-badge">
+        <span class="hud-logo-icon" aria-hidden="true">🐾</span>
+        <div class="hud-title-text">
+          <h1>FURRYBABY SANCTUARY</h1>
+          <span>Thung Lũng Thú Cưng Pixel • 10 Huyền Thoại</span>
+        </div>
+      </div>
+
+      <div class="hud-stats-pill">
+        <span id="hudSanctuaryLevel" class="hud-level-badge">Cấp 1</span>
+        <span id="hudHeartsCount" class="hud-hearts-badge">0 ❤️</span>
+      </div>
+    </div>
+
+    <div class="hud-right">
+      <button id="btnTimeOfDay" class="hud-btn" title="Chuyển đổi Chu Kỳ Ngày / Hoàng Hôn / Đêm">☀️ Ban Ngày</button>
+      <button id="btnBGM" class="hud-btn" title="Bật/Tắt Nhạc Nền 8-Bit Chiptune">🔇 Nhạc: Tắt</button>
+      <button id="btnSFX" class="hud-btn active" title="Bật/Tắt Hiệu Ứng Âm Thanh">🔊 Âm thanh: Bật</button>
+      <button id="btnHome" class="hud-btn hud-icon-btn" title="Về Trung Tâm Thung Lũng">🏠</button>
+      <button id="btnZoomIn" class="hud-btn hud-icon-btn" title="Phóng to Bản Đồ">+</button>
+      <button id="btnZoomOut" class="hud-btn hud-icon-btn" title="Thu nhỏ Bản Đồ">−</button>
+    </div>
+  </header>
+
+  <!-- Minimap Widget (Top Right) -->
+  <aside class="minimap-frame" title="Nhấp vào để dịch chuyển camera">
+    <div class="minimap-title">BẢN ĐỒ THUNG LŨNG</div>
+    <canvas id="minimapCanvas" width="170" height="136"></canvas>
+  </aside>
+
+  <!-- Keyboard & Mouse Controls Hint -->
+  <div class="controls-hint">
+    <span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> / Kéo chuột di chuyển</span>
+    <span>•</span>
+    <span>Cuộn chuột phóng to</span>
+    <span>•</span>
+    <span>Nhấp vào Pet để chăm sóc</span>
+  </div>
+
+  <!-- Level Up Floating Banner -->
+  <div id="levelUpNotif" role="alert" aria-live="polite"></div>
+
+  <!-- Pet Inspector Card (Interactive Modal) -->
+  <aside id="petInspectorCard" aria-label="Thông tin chi tiết thú cưng">
+    <div class="inspector-header">
+      <div class="inspector-title-area">
+        <h2 id="inspectorPetName">Tên Thú Cưng</h2>
+        <div id="inspectorPetSpecies" class="species-tag">Chủng Loài • Hệ</div>
+      </div>
+      <button id="btnCloseCard" class="btn-close-card" title="Đóng thông tin">✕</button>
+    </div>
+
+    <!-- Live Animated Sprite Stage -->
+    <div class="inspector-stage">
+      <canvas id="inspectorPreviewCanvas" width="160" height="160"></canvas>
+    </div>
+
+    <!-- Biome & Personality Metadata -->
+    <div class="inspector-meta-row">
+      <div class="meta-item">
+        <span class="meta-label">Môi trường sống:</span>
+        <span id="inspectorPetBiome" class="meta-value">Rừng Thần</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Tính cách:</span>
+        <span id="inspectorPetPersonality" class="meta-value">Thân thiện</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Món khoái khẩu:</span>
+        <span id="inspectorPetFavFood" class="meta-value">Quả Mọng Rừng</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Tâm trạng hiện tại:</span>
+        <span id="statMood" class="meta-value" style="color: var(--gold);">Rất Vui Vẻ</span>
+      </div>
+    </div>
+
+    <!-- Pet Care Stats (Affection, Hunger, Energy) -->
+    <div class="inspector-stats">
+      <div class="stat-row">
+        <div class="stat-header">
+          <span class="stat-name">❤️ Độ Thân Thiết</span>
+          <span id="statAffection" class="stat-num" style="color: var(--accent-pink);">100/100</span>
+        </div>
+        <div class="stat-track">
+          <div id="barAffection" class="stat-fill affection" style="width: 100%;"></div>
+        </div>
+      </div>
+
+      <div class="stat-row">
+        <div class="stat-header">
+          <span class="stat-name">🍖 Độ No Nê</span>
+          <span id="statHunger" class="stat-num" style="color: var(--accent-green);">85%</span>
+        </div>
+        <div class="stat-track">
+          <div id="barHunger" class="stat-fill hunger" style="width: 85%;"></div>
+        </div>
+      </div>
+
+      <div class="stat-row">
+        <div class="stat-header">
+          <span class="stat-name">⚡ Năng Lượng</span>
+          <span id="statEnergy" class="stat-num" style="color: var(--accent-cyan);">90%</span>
+        </div>
+        <div class="stat-track">
+          <div id="barEnergy" class="stat-fill energy" style="width: 90%;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pet Care Interaction Actions -->
+    <div class="inspector-actions-grid">
+      <button id="btnFeed" class="action-btn feed" title="Cho pet ăn món khoái khẩu">🍖 Cho Ăn</button>
+      <button id="btnPet" class="action-btn pet" title="Xoa đầu, vuốt ve tạo tình cảm">❤️ Vuốt Ve</button>
+      <button id="btnPlay" class="action-btn play" title="Chơi đùa nhảy múa cùng pet">⭐ Chơi Đùa</button>
+      <button id="btnNap" class="action-btn nap" title="Cho pet ngủ một giấc ngắn phục hồi năng lượng">💤 Ru Ngủ</button>
+    </div>
+
+    <!-- Shared Nursery: quests, long incubation, time-reduction items -->
+    <div class="couple-nursery-panel">
+      <div class="section-sub-title">Ổ TRỨNG NUÔI CHUNG</div>
+      <div class="couple-partner-row">
+        <button id="btnSetCoupleA" class="couple-slot-btn" title="Chọn pet đang xem làm pet chính">Pet chính: Chọn pet này</button>
+        <button id="btnSetCoupleB" class="couple-slot-btn" title="Chọn thêm pet ghép đôi nếu có">Pet ghép: Optional</button>
+      </div>
+      <div id="coupleTaskList" class="couple-task-list"></div>
+      <div id="coupleEggStatus" class="couple-egg-status"></div>
+      <div class="incubation-item-row">
+        <div id="incubationItemStatus" class="incubation-item-status">⏳ Tinh Chất Ấp: 0</div>
+        <button id="btnUseIncubationItem" class="couple-item-btn" title="Nạp item vào trứng để giảm thời gian ấp" disabled>⏳ Nạp</button>
+      </div>
+      <button id="btnStartIncubation" class="action-btn couple-incubate" title="Bắt đầu ấp trứng 7-14 ngày sau khi pet hoàn thành nhiệm vụ" disabled>🥚 Ấp Trứng 7-14 Ngày</button>
+    </div>
+
+    <!-- Poses Selection -->
+    <div class="section-sub-title">TƯ THẾ HOẠT HỌA</div>
+    <div id="inspectorPosesList" class="poses-list"></div>
+
+    <!-- Special Color Selection for Nine-Tails Fox (Hồ Ly 5 Màu) -->
+    <div id="inspectorColorsContainer" style="display: none;">
+      <div class="section-sub-title">BẢNG MÀU THẦN THOẠI</div>
+      <div id="inspectorColorsList" class="colors-list"></div>
+    </div>
+  </aside>
+
+  <!-- Bottom Showcase Carousel Bar -->
+  <section class="bottom-showcase-bar" aria-label="Bộ sưu tập 10 thú cưng pixel">
+    <div class="showcase-header">
+      <div class="showcase-header-title">
+        <h3>TRƯNG BÀY 10 BÉ PET PIXEL</h3>
+        <span>(Nhấp vào bé nào để camera bay tới ngay)</span>
+      </div>
+
+      <!-- Biome Filters -->
+      <nav class="biome-filter-tabs" aria-label="Lọc theo hệ sinh thái">
+        <button class="biome-filter-btn active" data-biome="all">Tất Cả (10)</button>
+        <button class="biome-filter-btn" data-biome="shrine">⛩️ Đền Thần (2)</button>
+        <button class="biome-filter-btn" data-biome="forest">🌲 Rừng Thần (2)</button>
+        <button class="biome-filter-btn" data-biome="galaxy">🌌 Vực Ngân Hà (1)</button>
+        <button class="biome-filter-btn" data-biome="lagoon">🌊 Đầm San Hô (1)</button>
+        <button class="biome-filter-btn" data-biome="volcano">🌋 Núi Lửa (1)</button>
+        <button class="biome-filter-btn" data-biome="meadow">🌸 Đồng Cỏ & Làng (3)</button>
+      </nav>
+    </div>
+
+    <!-- Horizontal Showcase Pet List -->
+    <div id="showcaseList" class="showcase-list"></div>
+  </section>
+
+  <!-- Game Scripts Loaded Sequentially -->
+  <script src="pets-bundle.js?v=12"></script>
+  <script src="audio.js?v=12"></script>
+  <script src="map.js?v=12"></script>
+  <script src="game.js?v=12"></script>
+</body>
+</html>

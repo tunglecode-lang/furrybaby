@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="vi"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Bé Ma Mèo Tím – Pixel</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#f3f1fa;--card:#fff;--ink:#3a2e5a;--mute:#8a7fb0;--line:#e2dcf4;--acc:#8a78d0;--accink:#fff}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1c1830;--card:#282244;--ink:#f1ecff;--mute:#b4aad8;--line:#3c3466;--acc:#a898f0;--accink:#1c1830}}
+:root[data-theme="dark"]{--bg:#1c1830;--card:#282244;--ink:#f1ecff;--mute:#b4aad8;--line:#3c3466;--acc:#a898f0;--accink:#1c1830}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Nunito","Trebuchet MS",system-ui,sans-serif;line-height:1.4}
+.wrap{max-width:640px;margin:0 auto;padding:18px 14px 40px;text-align:center}
+h1{font-size:22px;margin:6px 0 4px;font-weight:900}.sub{color:var(--mute);font-size:14px;margin:0 0 14px}
+.stage{background:linear-gradient(180deg,#f6f2ff,#e6e0fa);border:2px solid var(--line);border-radius:20px;padding:10px;line-height:0;display:inline-block}
+canvas{width:min(86vw,460px);height:auto;image-rendering:pixelated;display:block}
+.ctrl{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:14px}
+.btn{border:2px solid var(--line);background:var(--card);color:var(--ink);border-radius:12px;padding:9px 14px;font:inherit;font-weight:800;cursor:pointer}
+.btn[aria-pressed="true"]{background:var(--acc);border-color:var(--acc);color:var(--accink)}
+.btn:focus-visible{outline:3px solid #5d86ff;outline-offset:2px}
+.note{font-size:12.5px;color:var(--mute);margin-top:16px}
+</style></head><body><div class="wrap">
+<h1>Bé Ma Mèo Tím</h1>
+<p class="sub">Sprite pixel dựng lại từ đúng file bạn gửi (77x96 điểm ảnh), thêm chuyển động nhẹ.</p>
+<div class="stage"><canvas id="cv" width="105" height="128" aria-label="Sprite pixel bé ma mèo tím"></canvas></div>
+<div class="ctrl">
+<button class="btn" id="bAnim" aria-pressed="true">✨ Chuyển động</button>
+<button class="btn" id="bSpd" aria-pressed="false">⏩ Nhanh</button>
+<button class="btn" id="bBg" aria-pressed="false">🔲 Nền ô vuông</button>
+</div>
+<p class="note">Hình gốc được giữ nguyên từng điểm ảnh; chuyển động chỉ dịch hàng gấu áo, chớp mắt và nhấp nháy các chấm sao.</p>
+</div>
+<script>
+const D={"pal": ["#fcfbf9", "#fdfaf8", "#fdfaf7", "#fdfaf6", "#fcfaf8", "#fcf9f7", "#f8f9f7", "#fbf8f8", "#f8f8f8", "#f8f8f7", "#fbf8f5", "#f7f9f7", "#f7f8f8", "#f7f8f7", "#f7f8f6", "#f1f9fa", "#e6efe4", "#ace7fa", "#aae6fa", "#e2cbf5", "#e2c3f4", "#c7c6f8", "#94b2f2", "#a593ea", "#644fb6", "#4d329c", "#39177d", "#32106f"], "w": 77, "h": 96, "rows": ["........................................................qqqq.................", "...................................rrrrrrr.............qqqqqq................", "................................qrqrrrrrrrqrq........qqrggggiq...............", "..............................qqqrq521577aqqqrr....qrq00ggghimr..............", "............................qqqqa15155225251arrqr.qq70aggghhhmq..............", ".............qqq..........qqr155151112222222253eqqq00gggghhiimnr.............", "............qgggqqqq.....qq75321dpppp032212212appgggggihhhhiimkq.............", "...........rq3ggggrqrr..qq12350ppgggpp15511212oggggglihhihiimmkq.............", "...........r007hgggggrqqr5251apa00ggggp122222niggglih8hhhiiimmkq.............", "...........ri000iiiggjqq15215pggggggkkp021122ohiigiia50hhiimmmkq.............", "...........rm0000iiiimo122225ppkgggkkp9511122oihihiig00hihmmmmkq.............", "...........qqf000iiiio11125115ppoopppp1212111oihiiihf3chiimmmmkq.............", "............qmgf0hiio3115222213poppoa212212125oiiii00fiiimmmmkkq.............", "............rmmiffioj2222252222222221121211111nniiiffhhiimmmmkkq.............", "............rmmiiiio152522525325132152111211113omihhiihimmmmkkkq.............", "............rkmmiio02222555225cjk90322121211112nomiihimmmmmmkkkq.............", "............qkmmmmo112552522ekkqqkl7212121111211onmmmmmmmmmkkkkr.............", ".............rkmmo0222222530lqqkkqqk112111111121kkommmmmmmmkkkkr.............", ".............rkkmo11222223kkqkkkkkkqk512111221115kjommmmmmmmkkq..............", "..............rko722222252lqkkjjjjjjrk51211121111kkkommmmmmmkkq..............", "..............qko52222222kqkjjjjjjjjjqq12521121112kkkommmmmmknr..............", "...............q021512223kqjjjj0004jjjqq1221111225kkkjoommmmmpq..............", "..............qr12121225kqjjj40414040ejqc1222111111kkkkkooooonnq.............", "..............qq1215222kqjjj40000004004jqq5222212115kkkkkkkkknnqq............", ".............qq0522252llqj440000000004040jq7222112125kkkjjjkkkkkq............", ".............rr3122215lrj40444440040404004gq7111112512kkkkkjkkkjkq...........", "............rr1221123jqja040000000000000003gqq512111151kkkkkkkjjjqq..........", "...........rrj521251kqq40404040040004440040agqq412112221kkkkkkkjjjq..........", "...........rr552122kkqj0rrrr00400044000444rrrreq522112151kkkkkkkjjr..........", "..........rr1252253kqjarrrrrra04000400447rrrrrrjq024112121kkkkkkkjjr.........", "..........rr122525kqqj0rrr0grr0440000004rr0grrrrjqj5122211kkjjkkkkkq.........", "..........r052223kkqp0erra0grr4004040007rr0ggrrr0jqj3212221kkjjkkkkr.........", "..........ra25515kqpp54rrrggrr0004444004rrggrrrr3ejqk122523kkjjjkkkq.........", "..........rj5523jlqpp07rrrrrrr0400440047rrrrrrrr00jkql03215kkjjjkknq.........", "..........rkk35jkqppp4arrrnnrr0000000047rrnnnrrr43jklqlj25jkkjjjkjq..........", "..........rkkk0kkqppp40rrnnnor4040040404rrnnnnra00jkkqqkkkkkkkjkkkq..........", "..........qjjkkkqopppj1jqkklq50400400400arlklork31jlppqkkkkkkkjkkq...........", "..........qqkkkkqoopppkkkppp7440rrrrrr0404pppkkkkajppppqkkkkkkkkqr...........", "..........rrjkkkpoooppkkkk040400ar50r40440414kkkkjoppoopkkkkkkkkr............", "............rkkkkooooopkk14404044440404004101akknppoooopkkkkkklr.............", "............qnkkkjoooooppj3044000000400004040jjpqpoooopkkkkkkqq..............", ".............qlkkkknoooooppkkj004400100004kjppppoooooojkkkkkqq...............", "..............rqkkkkkkkooooppppqpjjjjppppppppoooookkjkkkkkkqr................", "................qqkkjkkkkkkkkkkkoppppnkkkkkkkkkkkjjkkkkkklqq.................", ".................qqokkjjkkkkkkkkjlppjljkjookkkkkkkkjkoppppq..................", "...................qrqqqppppononnkkkononoooppppppppppoppnnnq.................", ".....................rnnpppplkkkkkkkjkkkklnppppppppppnnnnkkrr................", ".....................rknnnkkkkookkkkoookkkkkknnnnllnnnnnnkkjr................", "....................rkkkkkkjokjkkkkkkjookkkkkkkkkkkkkjkkjjjkr................", "....................rjkkkkkolkkkkkkkkjnnokkkkkkkkjkjjkjjjjjjq................", ".....................rkkkoonkkkk05kkjkknnpokkkkkkknokjkkjkjq.................", ".....................rpoplokkk511521jkkknnoojkkkkpppkkkkkkqq.................", "....................rlllllokk51212215kkklnnnppopoplppqqqqqq..................", "....................qllllnoj315211125kkkknnlkkoppklnpqqqqq...................", "...................rlkkklok12222222115kkjnnkkkkjkkkkonr......................", "...................qjkkkjo052221111221kkknnkkkkkkkkkkoq......................", "..................qkkkkkko021221221121kkkknkkkk02kkkkonq.....................", ".................qkkkkkkko5221122121215kkknkkkj32akkjkoqq....................", "................qrkkkkkkno0212222525125kkknkkkc5215jkkonq....................", "................qjkkkkkko02221205212215kkknjkk312112kjpnnr...................", "..............qqkkkkkkkko11224hihh52221kkkkokk1522125kjonqq..................", "............qre0iijkkkkko2213hhhhii31151kkkokk12212250aonnqq.................", "...........rr0fiiimkkkkko0221iihhii02112jkkokk3225211334olnrr................", "........rrq0fiiiiimmkkko0511iihihihi2521jkkokkj5hiiia52a0onlmqqq.............", ".......qqhfiiiihiiimkkkoa21ahiihhiii22132jkokkjiiiihih04aaoommqqrr...........", ".......qihppihhhiiimmkko055hii00iiiii22122kojkmhiihhhhiiiiiiommmnnqr.........", ".....q..qpoophhhiiimmmo712iiii00hiiii02212kkokmiiihhhiiihiiiijommmmnqq.......", "....qq...qoophhihhmmmmo43hhiiihhiiiiii05215jommiih00hii00iiiiikommmmmmq......", "...rggq..qoophhh00mmmo72hihiiiiiiiiiiiii411aommihi04iihh1hhhhiikommmmlmq.....", "..qqggqqqoopphhh01mmmoa4h00hiiihhhiiiiiii410aommiiiihhhihhhhhhiikommmmkqq....", ".qqgggqpooppihhhimmmoggiif0ihihhhhhhhhiihi452ommhihhihhhhhhhihhhjkommmmkq....", "rrggghgqppqhhifimmmmoggiiihiiihhhhhhhihhhii00ommiihf0hhhhhhimmmmmkjom0mkq....", "rrgghhhihihhhhhmmmnogggiiiiiippphhhhihhhhihi35ommii000hhhhhmmppqqpkommmq.....", "rrghhhhhhhhhhmmmmnnoggghiiiipooophhhhihhihhifaommii000hhhhmmpooooppkpmmrr.r..", "rrhhhhhhmmmmmmmmnnoggggiiiipooooophhih000hihi0aomihh0hihhhmpooooopokpmmmqqrq.", ".qmhihhmoormmmnnnnoggghhiipoooooophhii000iihi80onmhhihhhhhmpooooopoopmmmiijq.", "..qmiirqqrqqoonnnogggghihippooooophhii000ihihhaonmmhhhhhhmmpoooooopqpmmihhijq", "...qrqq.....roonnoggghhhhhipoogoophhhhhfhhhhhi05ommmhhhhhmmpooogooppmmihhhijq", "............qqoonogghhhhiipooooopihhhhhhhhhhiii4onmmmhhhmmmpoooooooopmihhhhkq", ".............qqoogghhiiimpoppooppihihhhhhhhhhhi04onnmmiimmmmpooooaoooomihhhkq", "..............qqoghiimmppopippppihhhhhhhhhhhhhhieonmmmmmmmmmmpooojooooopijkjq", "..............qpgiimpppoopihihhihhhhhhhhhhhhhhhhh4onnmmmmmmmmpooooooooooookkr", "..............qpgimpooooqqmiihhhhhhhhhhhhippphhhh0opppnmmmmmpoooooqqqqqooojr.", "..............rrhipooooqqqrnnmihhhhhhhhhhpppppphihppopppmmppoooooqq...qqqqrq.", "..............qqhppoooqq...qqnnnnnhhhhhhhppqqpphhipooooopppppooooq.....qqqr..", "..............rripooooq....qqrppqqmmihhhppqqqpphhiqpoooooq00ppooqq...........", "..............rripoooooqqr...rooooqqmihhpppqqpphhhqpoooooq00qqooqq...........", "..............rrmoooooopooq..qooooopqnhhhpppppphhiqqqoooopqqqooqq............", "..............rrmooooooooor..roooooppqmhhipppphhhhqrqqooooqqoooqq............", "...............qqmoooooooor...qooooqqqqhhhhhhhhhhirq.qqoooooooqq.............", "...............qqmmoooooor....rqoooqq.qohhhhhhhhiiqr..qqooooqqr..............", "................qqmmooooq......qqqqq..qqnmihhhhhhnq.....qqrqq................", "..................rqqrqq........qrq....qqqnmmhhhmq...........................", "........................................qqqqnnnnrq...........................", "..........................................rrqrrqr............................", ".............................................rrr............................."], "face": 4, "dark": 27};
+/* Ghép khung hình từ lưới gốc, không thay đổi nét vẽ gốc */
+function lumHex(h){const r=parseInt(h.slice(1,3),16),g=parseInt(h.slice(3,5),16),b=parseInt(h.slice(5,7),16);return .3*r+.59*g+.11*b;}
+function prep(D){const G=D.rows.map(r=>[...r].map(c=>c==='.'?-1:parseInt(c,36)));const W=D.w,H=D.h;
+  const white=new Set();D.pal.forEach((p,i)=>{if(lumHex(p)>236)white.add(i);});
+  const tw=[];
+  for(let j=58;j<H-1;j++)for(let i=1;i<W-1;i++){const v=G[j][i];if(v<0||!white.has(v))continue;
+    const nb=[G[j-1][i],G[j+1][i],G[j][i-1],G[j][i+1]];
+    if(nb.every(x=>x>=0&&!white.has(x))){const cnt={};nb.forEach(x=>cnt[x]=(cnt[x]||0)+1);const m=+Object.keys(cnt).sort((a,b)=>cnt[b]-cnt[a])[0];tw.push([j,i,m]);}}
+  return {G,W,H,tw,face:D.face,dark:D.dark};}
+function compose(S,t,opt){opt=opt||{};const {G,W,H}=S;
+  if(opt.static)return {grid:G.map(r=>r.slice()),dy:0};
+  const base=G.map(r=>r.slice());
+  S.tw.forEach(([j,i,m],n)=>{if(((t*1.6+n*.9)%4)<.9)base[j][i]=m;});
+  const top=50,res=[];
+  for(let j=0;j<H;j++){const row=base[j];let sh=0;
+    if(j>=top){const k=(j-top)/(H-top);sh=Math.round(Math.sin(t*2.6+j*.16)*2.4*k*k+Math.sin(t*1.3)*1.2*k);}
+    const nr=new Array(W).fill(-1);for(let i=0;i<W;i++){const v=row[i];if(v<0)continue;const ni=i+sh;if(ni>=0&&ni<W)nr[ni]=v;}res.push(nr);}
+  const cyc=t%4.2;
+  if(cyc>3.95||(cyc>1.9&&cyc<2.05)){
+    [[23,29],[40,47]].forEach(([x0,x1],k)=>{for(let j=27;j<=37;j++)for(let i=x0;i<=x1;i++)if(res[j][i]>=0)res[j][i]=S.face;
+      const L=k?[[41,32],[42,33],[43,33],[44,33],[45,33],[46,32]]:[[24,32],[25,33],[26,33],[27,33],[28,32]];L.forEach(([x,y])=>{res[y][x]=S.dark;});});}
+  return {grid:res,dy:Math.round(Math.sin(t*2.2)*1)};}
+
+const S=prep(D),M=14,CW=S.W+M*2,CH=S.H+M*2+4;
+const cv=document.getElementById('cv');cv.width=CW;cv.height=CH;const x=cv.getContext('2d');
+let anim=true,fast=false,check=false,t0=performance.now(),acc=0,last=performance.now();
+const sp=[];for(let i=0;i<9;i++)sp.push({x:Math.random()*CW,y:Math.random()*CH,v:.3+Math.random()*.5,p:Math.random()*6,c:['#d8c8f8','#ffffff','#b8e0f4','#f4d8f4'][i%4]});
+function plus(px,py,c){x.fillStyle=c;x.fillRect(px,py-1,1,3);x.fillRect(px-1,py,3,1);}
+function draw(time){const tt=anim?time:0;
+  x.clearRect(0,0,CW,CH);
+  if(check){for(let j=0;j<CH;j++)for(let i=0;i<CW;i++){x.fillStyle=((i>>2)+(j>>2))&1?'#ece6fa':'#f8f5ff';x.fillRect(i,j,1,1);}}
+  const f=compose(S,tt,{static:!anim});
+  /* bóng */
+  x.fillStyle='rgba(70,50,120,.16)';const by=M+S.H+1;for(let i=-24;i<=24;i++)x.fillRect(Math.round(CW/2+i),by+2,1,1);for(let i=-16;i<=16;i++)x.fillRect(Math.round(CW/2+i),by+3,1,1);
+  /* sprite */
+  for(let j=0;j<S.H;j++)for(let i=0;i<S.W;i++){const v=f.grid[j][i];if(v<0)continue;x.fillStyle=D.pal[v];x.fillRect(M+i,M+j+f.dy,1,1);}
+  if(anim)sp.forEach(s=>{const yy=(s.y-(tt*8*s.v))%CH,py=Math.round(yy<0?yy+CH:yy),on=Math.sin(tt*2+s.p)>-.2;if(on)plus(Math.round(s.x),py,s.c);});}
+function loop(now){const dt=(now-last)/1000;last=now;if(anim)acc+=dt*(fast?1.8:1);draw(acc);requestAnimationFrame(loop);}
+const bA=document.getElementById('bAnim'),bS=document.getElementById('bSpd'),bB=document.getElementById('bBg');
+bA.onclick=()=>{anim=!anim;bA.setAttribute('aria-pressed',anim)};bS.onclick=()=>{fast=!fast;bS.setAttribute('aria-pressed',fast)};bB.onclick=()=>{check=!check;bB.setAttribute('aria-pressed',check)};
+requestAnimationFrame(loop);
+</script></body></html>
